@@ -1,14 +1,7 @@
-import { Chess, type Square } from "chess.js";
-import type { Annotation } from "./sample-game";
+import { Chess, type PieceSymbol, type Square } from "chess.js";
+import type { AnnotatedMove, Annotation } from "./sample-game";
 
-export interface ImportedMove {
-  ply: number;
-  san: string;
-  side: "w" | "b";
-  annotation: Annotation;
-  evalCp: number;
-  coach: string;
-}
+export type ImportedMove = AnnotatedMove;
 
 export interface ImportedGame {
   id: string;
@@ -237,17 +230,17 @@ interface ChessComCallbackPayload {
 }
 
 function decodeTcnMoveList(moveList: string) {
-  const moves: { from: Square; to: Square; promotion?: string }[] = [];
+  const moves: { from: Square; to: Square; promotion?: PieceSymbol }[] = [];
   for (let c = 0; c < moveList.length; c += 2) {
     const b = TCN_CHARS.indexOf(moveList[c]!);
     let a = TCN_CHARS.indexOf(moveList[c + 1]!);
     if (b < 0 || a < 0) continue;
-    const move: { from: Square; to: Square; promotion?: string } = {
+    const move: { from: Square; to: Square; promotion?: PieceSymbol } = {
       from: `${TCN_CHARS[b % 8]}${Math.floor(b / 8) + 1}` as Square,
       to: "a1" as Square,
     };
     if (a > 63) {
-      move.promotion = PROMOTION_PIECES[Math.floor((a - 64) / 3)];
+      move.promotion = PROMOTION_PIECES[Math.floor((a - 64) / 3)] as PieceSymbol;
       a = b + (b < 16 ? -8 : 8) + ((a - 1) % 3) - 1;
     }
     move.to = `${TCN_CHARS[a % 8]}${Math.floor(a / 8) + 1}` as Square;
