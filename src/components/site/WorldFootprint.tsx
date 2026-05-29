@@ -236,12 +236,11 @@ export function WorldFootprint() {
             })}
           </svg>
 
-          <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
             {[
               { k: "68", v: "Countries" },
-              { k: "2.4M+", v: "Games analyzed" },
-              { k: "180k", v: "Active players / month" },
               { k: "24 / 7", v: "Engine uptime" },
+              { k: "40k+", v: "Active players / month" },
             ].map((s) => (
               <div
                 key={s.v}
