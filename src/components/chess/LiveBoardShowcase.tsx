@@ -93,6 +93,7 @@ export function LiveBoardShowcase({ game }: { game?: ImportedGame | null }) {
               <EvalBar evalCp={evalCp} />
             </div>
             <div className="relative aspect-square w-full max-w-[540px] shrink-0 overflow-hidden rounded-2xl ring-1 ring-glass-border lg:w-[440px]">
+              <div className="absolute inset-0">
               <Chessboard
                 options={{
                   position: fen,
@@ -101,9 +102,15 @@ export function LiveBoardShowcase({ game }: { game?: ImportedGame | null }) {
                   animationDurationInMs: 280,
                   darkSquareStyle: { backgroundColor: "#3a4d5c" },
                   lightSquareStyle: { backgroundColor: "#e8edf2" },
-                  boardStyle: { borderRadius: 12 },
+                  boardStyle: {
+                    borderRadius: 12,
+                    width: "100%",
+                    height: "100%",
+                    aspectRatio: "1 / 1",
+                  },
                 }}
               />
+              </div>
               {currentMove && (
                 <AnnotationBadge annotation={currentMove.annotation} san={currentMove.san} />
               )}
