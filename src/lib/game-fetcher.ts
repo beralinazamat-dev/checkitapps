@@ -1,4 +1,4 @@
-import { Chess } from "chess.js";
+import { Chess, type Square } from "chess.js";
 import type { Annotation } from "./sample-game";
 
 export interface ImportedMove {
@@ -42,6 +42,9 @@ export interface GameSummary {
 }
 
 const HEADER_RE = /\[(\w+)\s+"([^"]*)"\]/g;
+const PIECE_VALUE: Record<string, number> = { p: 100, n: 320, b: 330, r: 500, q: 900, k: 0 };
+const TCN_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!?{~}(^)[_]@#$,./&-*++=";
+const PROMOTION_PIECES = "qnrbkp";
 
 function parseHeaders(pgn: string): Record<string, string> {
   const out: Record<string, string> = {};
@@ -51,21 +54,70 @@ function parseHeaders(pgn: string): Record<string, string> {
   return out;
 }
 
+function evaluateMaterial(fen: string): number {
+  const board = new Chess(fen).board();
+  return board.flat().reduce((score, piece) => {
+    if (!piece) return score;
+    const value = PIECE_VALUE[piece.type] ?? 0;
+    return score + (piece.color === "w" ? value : -value);
+  }, 0);
+}
+
+function classifyMove(deltaForMover: number, ply: number, san: string): Annotation {
+  if (ply <= 12) return "book";
+  if (san.includes("#")) return "brilliant";
+  if (san.includes("+")) return deltaForMover >= 0 ? "great" : "good";
+  if (deltaForMover <= -500) return "blunder";
+  if (deltaForMover <= -250) return "mistake";
+  if (deltaForMover <= -120) return "inaccuracy";
+  if (deltaForMover >= 350) return "great";
+  if (deltaForMover >= 150) return "excellent";
+  return "good";
+}
+
+function coachText(annotation: Annotation, san: string, side: "w" | "b", deltaForMover: number): string {
+  const player = side === "w" ? "White" : "Black";
+  const swing = Math.abs(deltaForMover) >= 100 ? ` The material balance shifts by about ${(Math.abs(deltaForMover) / 100).toFixed(1)} pawns.` : "";
+  const copy: Record<Annotation, string> = {
+    brilliant: `${san} is a forcing tactical move. ${player} creates a decisive threat that should be checked carefully before moving on.`,
+    great: `${san} is a strong practical decision. ${player} improves the position while creating immediate pressure.${swing}`,
+    best: `${san} keeps the position under control and follows the most direct plan available.`,
+    excellent: `${san} is accurate and improves piece activity without giving the opponent an easy target.${swing}`,
+    good: `${san} is playable and keeps the game balanced. Look for the follow-up plan: improve pieces, secure the king, or challenge the center.`,
+    book: `${san} follows common opening principles: fight for the center, develop pieces, and keep the king safe.`,
+    inaccuracy: `${san} is playable, but there may be a cleaner move that keeps more pressure or avoids a small concession.${swing}`,
+    mistake: `${san} gives the opponent a clear chance to improve. Recheck captures, checks, and threats in this position.${swing}`,
+    miss: `${san} misses a tactical opportunity. Scan forcing moves first: checks, captures, and direct threats.`,
+    blunder: `${san} is a serious turning point. Before this move, calculate opponent captures and forcing replies.${swing}`,
+  };
+  return copy[annotation];
+}
+
+function annotatePgnMoves(pgn: string): ImportedMove[] {
+  const chess = new Chess();
+  chess.loadPgn(pgn);
+  return chess.history({ verbose: true }).map((h, i) => {
+    const before = evaluateMaterial(h.before);
+    const after = evaluateMaterial(h.after);
+    const side = h.color as "w" | "b";
+    const deltaForWhite = after - before;
+    const deltaForMover = side === "w" ? deltaForWhite : -deltaForWhite;
+    const annotation = classifyMove(deltaForMover, i + 1, h.san);
+    return {
+      ply: i + 1,
+      san: h.san,
+      side,
+      annotation,
+      evalCp: after,
+      coach: coachText(annotation, h.san, side, deltaForMover),
+    };
+  });
+}
+
 /** Parse a PGN string into an ImportedGame with neutral annotations. */
 export function parsePgn(pgn: string, fallbackId = "pgn"): ImportedGame {
   const headers = parseHeaders(pgn);
-  const chess = new Chess();
-  // chess.js is lenient with PGN by default; throws on hard parse failures.
-  chess.loadPgn(pgn);
-  const history = chess.history({ verbose: true });
-  const moves: ImportedMove[] = history.map((h, i) => ({
-    ply: i + 1,
-    san: h.san,
-    side: h.color as "w" | "b",
-    annotation: "good",
-    evalCp: 0,
-    coach: "",
-  }));
+  const moves = annotatePgnMoves(pgn);
 
   return {
     id: fallbackId,
@@ -97,7 +149,7 @@ export function detectInput(raw: string): {
   const lu = s.match(/lichess\.org\/@\/([\w-]+)/i);
   if (lu) return { kind: "lichess-user", value: lu[1]! };
   // Chess.com game URL (live/daily) — we can't fetch by id, fall back to player lookup
-  const cg = s.match(/chess\.com\/(?:game|analysis)\/(?:live|daily)\/(\d+)/i);
+  const cg = s.match(/chess\.com\/(?:game|analysis\/game)\/(?:live|daily)\/(\d+)/i);
   if (cg) return { kind: "chesscom-game", value: cg[1]! };
   // Chess.com user URL
   const cu = s.match(/chess\.com\/(?:member|stats|home)\/([\w-]+)/i);
@@ -128,9 +180,7 @@ export async function fetchChessComGames(
   limit = 100,
 ): Promise<GameSummary[]> {
   const u = username.toLowerCase();
-  const archivesRes = await fetch(
-    `https://api.chess.com/pub/player/${encodeURIComponent(u)}/games/archives`,
-  );
+  const archivesRes = await fetch(`https://api.chess.com/pub/player/${encodeURIComponent(u)}/games/archives`);
   if (archivesRes.status === 404)
     throw new Error(`Chess.com user "${username}" not found.`);
   if (!archivesRes.ok)
@@ -166,6 +216,86 @@ export async function fetchChessComGames(
     }
   }
   return out;
+}
+
+interface ChessComCallbackPlayer {
+  color: "white" | "black";
+  rating?: number;
+  username: string;
+}
+
+interface ChessComCallbackPayload {
+  game: {
+    id: number;
+    moveList: string;
+    endTime?: number;
+    pgnHeaders: Record<string, string | number>;
+    timeControl?: { baseMs?: number };
+    typeName?: string;
+  };
+  players?: { top?: ChessComCallbackPlayer; bottom?: ChessComCallbackPlayer };
+}
+
+function decodeTcnMoveList(moveList: string) {
+  const moves: { from: Square; to: Square; promotion?: string }[] = [];
+  for (let c = 0; c < moveList.length; c += 2) {
+    const b = TCN_CHARS.indexOf(moveList[c]!);
+    let a = TCN_CHARS.indexOf(moveList[c + 1]!);
+    if (b < 0 || a < 0) continue;
+    const move: { from: Square; to: Square; promotion?: string } = {
+      from: `${TCN_CHARS[b % 8]}${Math.floor(b / 8) + 1}` as Square,
+      to: "a1" as Square,
+    };
+    if (a > 63) {
+      move.promotion = PROMOTION_PIECES[Math.floor((a - 64) / 3)];
+      a = b + (b < 16 ? -8 : 8) + ((a - 1) % 3) - 1;
+    }
+    move.to = `${TCN_CHARS[a % 8]}${Math.floor(a / 8) + 1}` as Square;
+    moves.push(move);
+  }
+  return moves;
+}
+
+export function chessComCallbackToGame(payload: ChessComCallbackPayload): ImportedGame {
+  const { game } = payload;
+  const headers = game.pgnHeaders ?? {};
+  const chess = new Chess(String(headers.FEN ?? undefined) === "undefined" ? undefined : String(headers.FEN));
+  Object.entries(headers).forEach(([key, value]) => {
+    if (key !== "FEN" && key !== "SetUp") chess.header(key, String(value));
+  });
+  decodeTcnMoveList(game.moveList).forEach((move) => {
+    try {
+      chess.move(move);
+    } catch {
+      /* ignore unsupported encoded moves */
+    }
+  });
+  const pgn = chess.pgn();
+  const parsed = parsePgn(pgn, `chess.com-${game.id}`);
+  const whitePlayer = Object.values(payload.players ?? {}).find((p) => p?.color === "white");
+  const blackPlayer = Object.values(payload.players ?? {}).find((p) => p?.color === "black");
+  return {
+    ...parsed,
+    source: "chess.com",
+    id: `chess.com-${game.id}`,
+    white: String(headers.White ?? whitePlayer?.username ?? parsed.white),
+    black: String(headers.Black ?? blackPlayer?.username ?? parsed.black),
+    whiteRating: Number(headers.WhiteElo ?? whitePlayer?.rating) || undefined,
+    blackRating: Number(headers.BlackElo ?? blackPlayer?.rating) || undefined,
+    result: String(headers.Result ?? parsed.result),
+    event: String(headers.Event ?? game.typeName ?? "Chess.com game"),
+    opening: String(headers.Opening ?? headers.ECO ?? parsed.opening),
+    timeControl: String(headers.TimeControl ?? (game.timeControl?.baseMs ? `${game.timeControl.baseMs / 1000}` : "")) || undefined,
+    endedAt: game.endTime ? game.endTime * 1000 : undefined,
+    url: `https://www.chess.com/game/live/${game.id}`,
+    pgn,
+  };
+}
+
+export async function fetchChessComGame(id: string): Promise<ImportedGame> {
+  const r = await fetch(`/api/chesscom-game/${encodeURIComponent(id)}`);
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
 }
 
 /** Fetch up to `limit` most recent Lichess games for a username (NDJSON). */

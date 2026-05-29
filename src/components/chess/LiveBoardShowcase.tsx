@@ -12,14 +12,22 @@ import {
 } from "lucide-react";
 import { SAMPLE_GAME } from "@/lib/sample-game";
 import { ANNOTATION_META } from "@/lib/annotations";
+import type { ImportedGame } from "@/lib/game-fetcher";
 import { EvalBar } from "./EvalBar";
 import { EvalGraph } from "./EvalGraph";
 import { SectionHeading } from "./GameImporter";
 
-export function LiveBoardShowcase() {
-  const moves = SAMPLE_GAME.moves;
+export function LiveBoardShowcase({ game }: { game?: ImportedGame | null }) {
+  const displayGame = game ?? SAMPLE_GAME;
+  const gameKey = game?.id ?? "sample-game";
+  const moves = displayGame.moves;
   const [ply, setPly] = useState(0); // 0 = starting position
   const [playing, setPlaying] = useState(false);
+
+  useEffect(() => {
+    setPly(0);
+    setPlaying(false);
+  }, [gameKey]);
 
   // Build the position for the given ply by replaying SAN moves.
   const fen = useMemo(() => {
@@ -107,15 +115,15 @@ export function LiveBoardShowcase() {
             <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
               <div>
                 <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-                  {SAMPLE_GAME.event} · {SAMPLE_GAME.opening}
+                  {displayGame.event} · {displayGame.opening}
                 </p>
                 <h3 className="mt-1 font-display text-xl font-semibold sm:text-2xl">
-                  {SAMPLE_GAME.white}{" "}
-                  <span className="text-muted-foreground">vs</span> {SAMPLE_GAME.black}
+                  {displayGame.white}{" "}
+                  <span className="text-muted-foreground">vs</span> {displayGame.black}
                 </h3>
               </div>
               <span className="self-start rounded-full border border-emerald/30 bg-emerald/10 px-2.5 py-1 font-mono text-xs text-emerald">
-                {SAMPLE_GAME.result}
+                {displayGame.result}
               </span>
             </div>
 
@@ -173,8 +181,8 @@ export function LiveBoardShowcase() {
                   ) : (
                     <p className="mt-2 text-sm text-muted-foreground">
                       Press <span className="text-foreground">Auto-play</span> or use the arrows to
-                      step through this classic miniature. Every move is classified by Stockfish and
-                      explained in plain language.
+                      step through the selected game. Every move is classified and explained in
+                      plain language.
                     </p>
                   )}
                 </motion.div>
