@@ -1,29 +1,52 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Toaster } from "sonner";
+import { Navbar } from "@/components/site/Navbar";
+import { Hero } from "@/components/site/Hero";
+import { GameImporter } from "@/components/chess/GameImporter";
+import { LiveBoardShowcase } from "@/components/chess/LiveBoardShowcase";
+import { OpeningsExplorer } from "@/components/chess/OpeningsExplorer";
+import { WorldFootprint } from "@/components/site/WorldFootprint";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Your App" },
-      { name: "description", content: "Replace this with a one-sentence description of your app." },
-      { property: "og:title", content: "Your App" },
-      { property: "og:description", content: "Replace this with a one-sentence description of your app." },
+      { title: "ChessLab Analyzer — Understand every move you play" },
+      {
+        name: "description",
+        content:
+          "Modern AI chess analysis. Import any Chess.com or Lichess game, get Stockfish evaluations, classified annotations, and a personal AI coach.",
+      },
+      { property: "og:title", content: "ChessLab Analyzer" },
+      {
+        property: "og:description",
+        content:
+          "Stockfish-powered analysis, move-by-move annotations, and AI explanations for every level.",
+      },
     ],
   }),
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
 function Index() {
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
+    <main className="min-h-screen">
+      <Toaster
+        theme="dark"
+        position="top-center"
+        toastOptions={{
+          style: {
+            background: "oklch(0.205 0.022 252)",
+            color: "oklch(0.97 0.01 250)",
+            border: "1px solid oklch(1 0 0 / 0.1)",
+          },
+        }}
       />
-    </div>
+      <Navbar />
+      <Hero />
+      <GameImporter />
+      <LiveBoardShowcase />
+      <OpeningsExplorer />
+      <WorldFootprint />
+    </main>
   );
 }
