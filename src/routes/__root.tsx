@@ -72,14 +72,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "ChessLab Analyzer — Chess Analysis & Learning Platform" },
+      { name: "description", content: "Master your game with ChessLab Analyzer. Get local Stockfish analysis, interactive opening guides, and clear move coaching for all levels." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "ChessLab Analyzer — Chess Analysis & Learning Platform" },
+      { property: "og:description", content: "Master your game with ChessLab Analyzer. Get local Stockfish analysis, interactive opening guides, and clear move coaching for all levels." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "ChessLab Analyzer — Chess Analysis & Learning Platform" },
+      { name: "twitter:description", content: "Master your game with ChessLab Analyzer. Get local Stockfish analysis, interactive opening guides, and clear move coaching for all levels." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/0fc7f24a-04e6-46e7-8400-e7d3a5285b12/id-preview-152474e1--f235e719-e36d-49b6-b3c8-86987c1cfbcb.lovable.app-1780066327735.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/0fc7f24a-04e6-46e7-8400-e7d3a5285b12/id-preview-152474e1--f235e719-e36d-49b6-b3c8-86987c1cfbcb.lovable.app-1780066327735.png" },
     ],
     links: [
       {
