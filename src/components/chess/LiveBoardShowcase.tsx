@@ -1,0 +1,365 @@
+import { useEffect, useMemo, useState } from "react";
+import { Chess } from "chess.js";
+import { Chessboard } from "react-chessboard";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  ChevronLeft,
+  ChevronRight,
+  RotateCcw,
+  Play,
+  Pause,
+  Sparkles,
+} from "lucide-react";
+import { SAMPLE_GAME } from "@/lib/sample-game";
+import { ANNOTATION_META } from "@/lib/annotations";
+import { EvalBar } from "./EvalBar";
+import { EvalGraph } from "./EvalGraph";
+import { SectionHeading } from "./GameImporter";
+
+export function LiveBoardShowcase() {
+  const moves = SAMPLE_GAME.moves;
+  const [ply, setPly] = useState(0); // 0 = starting position
+  const [playing, setPlaying] = useState(false);
+
+  // Build the position for the given ply by replaying SAN moves.
+  const fen = useMemo(() => {
+    const chess = new Chess();
+    for (let i = 0; i < ply; i++) {
+      try {
+        chess.move(moves[i].san);
+      } catch {
+        break;
+      }
+    }
+    return chess.fen();
+  }, [ply, moves]);
+
+  const currentMove = ply > 0 ? moves[ply - 1] : null;
+  const evalCp = currentMove?.evalCp ?? 20;
+
+  useEffect(() => {
+    if (!playing) return;
+    const t = setTimeout(() => {
+      setPly((p) => {
+        if (p >= moves.length) {
+          setPlaying(false);
+          return p;
+        }
+        return p + 1;
+      });
+    }, 1100);
+    return () => clearTimeout(t);
+  }, [playing, ply, moves.length]);
+
+  const go = (delta: number) =>
+    setPly((p) => Math.max(0, Math.min(moves.length, p + delta)));
+
+  // Group moves into pairs for the move-list display.
+  const pairs: { num: number; white?: typeof moves[number]; black?: typeof moves[number] }[] = [];
+  moves.forEach((m, idx) => {
+    const num = Math.floor(idx / 2) + 1;
+    const slot = pairs[num - 1] ?? (pairs[num - 1] = { num });
+    if (idx % 2 === 0) slot.white = m;
+    else slot.black = m;
+  });
+
+  return (
+    <section id="board" className="relative py-12 sm:py-24">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <SectionHeading
+          kicker="02 · Live Analysis"
+          title="A board that teaches you back"
+          subtitle="Every move classified, every position evaluated, every decision explained — all synchronized in real time."
+        />
+
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.7 }}
+          className="glass-strong mt-10 grid gap-4 rounded-3xl p-4 sm:p-6 lg:grid-cols-[auto_1fr_22rem]"
+        >
+          {/* Board + eval bar */}
+          <div className="flex gap-3">
+            <div className="hidden sm:block" style={{ width: 28 }}>
+              <EvalBar evalCp={evalCp} />
+            </div>
+            <div className="relative aspect-square w-full max-w-[540px] overflow-hidden rounded-2xl ring-1 ring-glass-border lg:w-[440px]">
+              <Chessboard
+                options={{
+                  position: fen,
+                  allowDragging: false,
+                  showNotation: true,
+                  animationDurationInMs: 280,
+                  darkSquareStyle: { backgroundColor: "#3a4d5c" },
+                  lightSquareStyle: { backgroundColor: "#e8edf2" },
+                  boardStyle: { borderRadius: 12 },
+                }}
+              />
+              {currentMove && (
+                <AnnotationBadge annotation={currentMove.annotation} san={currentMove.san} />
+              )}
+            </div>
+          </div>
+
+          {/* Center: header, controls, AI coach, eval graph */}
+          <div className="flex min-w-0 flex-col gap-4">
+            <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
+              <div>
+                <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+                  {SAMPLE_GAME.event} · {SAMPLE_GAME.opening}
+                </p>
+                <h3 className="mt-1 font-display text-xl font-semibold sm:text-2xl">
+                  {SAMPLE_GAME.white}{" "}
+                  <span className="text-muted-foreground">vs</span> {SAMPLE_GAME.black}
+                </h3>
+              </div>
+              <span className="self-start rounded-full border border-emerald/30 bg-emerald/10 px-2.5 py-1 font-mono text-xs text-emerald">
+                {SAMPLE_GAME.result}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <IconBtn onClick={() => setPly(0)} title="Reset">
+                <RotateCcw className="h-4 w-4" />
+              </IconBtn>
+              <IconBtn onClick={() => go(-1)} title="Previous">
+                <ChevronLeft className="h-4 w-4" />
+              </IconBtn>
+              <button
+                onClick={() => setPlaying((p) => !p)}
+                className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-emerald to-sky px-4 py-2 text-sm font-medium text-background ring-glow transition hover:opacity-95"
+              >
+                {playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                {playing ? "Pause" : "Auto-play"}
+              </button>
+              <IconBtn onClick={() => go(1)} title="Next">
+                <ChevronRight className="h-4 w-4" />
+              </IconBtn>
+              <span className="ml-auto font-mono text-xs text-muted-foreground">
+                Move {ply} / {moves.length}
+              </span>
+            </div>
+
+            {/* AI Coach panel */}
+            <div className="glass min-h-[148px] rounded-2xl p-4">
+              <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-emerald">
+                <Sparkles className="h-3.5 w-3.5" />
+                AI Coach
+              </div>
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={ply}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -4 }}
+                  transition={{ duration: 0.25 }}
+                  className="mt-3"
+                >
+                  {currentMove ? (
+                    <>
+                      <div className="flex items-baseline gap-2">
+                        <span className="font-mono text-sm text-muted-foreground">
+                          {Math.ceil(currentMove.ply / 2)}
+                          {currentMove.side === "w" ? "." : "..."}
+                        </span>
+                        <span className="font-display text-lg font-semibold">{currentMove.san}</span>
+                        <AnnotationChip annotation={currentMove.annotation} />
+                      </div>
+                      <p className="mt-2 text-sm leading-relaxed text-foreground/90">
+                        {currentMove.coach}
+                      </p>
+                    </>
+                  ) : (
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      Press <span className="text-foreground">Auto-play</span> or use the arrows to
+                      step through this classic miniature. Every move is classified by Stockfish and
+                      explained in plain language.
+                    </p>
+                  )}
+                </motion.div>
+              </AnimatePresence>
+            </div>
+
+            {/* Eval graph */}
+            <div className="glass h-32 rounded-2xl p-3">
+              <div className="flex items-center justify-between px-1 pb-1 text-xs text-muted-foreground">
+                <span>Evaluation timeline</span>
+                <span className="font-mono">
+                  {Math.abs(evalCp) >= 9000
+                    ? evalCp > 0
+                      ? "Mate for White"
+                      : "Mate for Black"
+                    : `${evalCp >= 0 ? "+" : ""}${(evalCp / 100).toFixed(2)}`}
+                </span>
+              </div>
+              <div className="h-[88px]">
+                <EvalGraph moves={moves} currentPly={ply} onSelect={setPly} />
+              </div>
+            </div>
+          </div>
+
+          {/* Right: move list */}
+          <div className="flex flex-col">
+            <div className="flex items-center justify-between px-1 pb-2 text-xs uppercase tracking-wider text-muted-foreground">
+              <span>Move list</span>
+              <span>Eval</span>
+            </div>
+            <div className="glass max-h-[520px] overflow-y-auto rounded-2xl p-2">
+              <table className="w-full text-sm">
+                <tbody>
+                  {pairs.map((p) => (
+                    <tr key={p.num} className="align-top">
+                      <td className="w-10 py-1.5 pr-2 text-right font-mono text-xs text-muted-foreground">
+                        {p.num}.
+                      </td>
+                      <MoveCell move={p.white} active={p.white?.ply === ply} onClick={setPly} />
+                      <MoveCell move={p.black} active={p.black?.ply === ply} onClick={setPly} />
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <AnnotationLegend />
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+function MoveCell({
+  move,
+  active,
+  onClick,
+}: {
+  move?: { ply: number; san: string; annotation: keyof typeof ANNOTATION_META; evalCp: number };
+  active: boolean;
+  onClick: (ply: number) => void;
+}) {
+  if (!move) return <td />;
+  const meta = ANNOTATION_META[move.annotation];
+  return (
+    <td className="py-0.5 pr-1">
+      <button
+        onClick={() => onClick(move.ply)}
+        className={`group flex w-full items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-left transition ${
+          active ? "bg-white/10 text-foreground" : "hover:bg-white/[0.04] text-foreground/85"
+        }`}
+      >
+        <span className="flex items-center gap-1.5 font-medium">
+          {move.san}
+          <span className="font-mono text-xs" style={{ color: meta.color }}>
+            {meta.symbol}
+          </span>
+        </span>
+        <span className="font-mono text-[10px] text-muted-foreground">
+          {Math.abs(move.evalCp) >= 9000
+            ? "M"
+            : `${move.evalCp >= 0 ? "+" : ""}${(move.evalCp / 100).toFixed(1)}`}
+        </span>
+      </button>
+    </td>
+  );
+}
+
+function AnnotationChip({ annotation }: { annotation: keyof typeof ANNOTATION_META }) {
+  const meta = ANNOTATION_META[annotation];
+  return (
+    <span
+      className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium"
+      style={{ background: meta.bg, color: meta.color, boxShadow: `inset 0 0 0 1px ${meta.ring}` }}
+    >
+      <span className="font-mono">{meta.symbol}</span>
+      {meta.label}
+    </span>
+  );
+}
+
+function AnnotationBadge({
+  annotation,
+  san,
+}: {
+  annotation: keyof typeof ANNOTATION_META;
+  san: string;
+}) {
+  const meta = ANNOTATION_META[annotation];
+  return (
+    <AnimatePresence>
+      <motion.div
+        key={san + annotation}
+        initial={{ opacity: 0, scale: 0.6, y: 8 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.6 }}
+        transition={{ type: "spring", bounce: 0.3, duration: 0.5 }}
+        className="absolute right-3 top-3 flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold backdrop-blur-md"
+        style={{
+          background: meta.bg,
+          color: meta.color,
+          boxShadow: `inset 0 0 0 1px ${meta.ring}`,
+        }}
+      >
+        <span className="font-mono">{meta.symbol}</span>
+        {san} · {meta.label}
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
+function IconBtn({
+  onClick,
+  title,
+  children,
+}: {
+  onClick: () => void;
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      title={title}
+      className="grid h-9 w-9 place-items-center rounded-full border border-glass-border bg-white/[0.04] text-foreground/80 transition hover:bg-white/10 hover:text-foreground"
+    >
+      {children}
+    </button>
+  );
+}
+
+function AnnotationLegend() {
+  const order: (keyof typeof ANNOTATION_META)[] = [
+    "brilliant",
+    "great",
+    "best",
+    "excellent",
+    "good",
+    "book",
+    "inaccuracy",
+    "mistake",
+    "miss",
+    "blunder",
+  ];
+  return (
+    <div className="glass mt-3 rounded-2xl p-3">
+      <div className="px-1 pb-2 text-xs uppercase tracking-wider text-muted-foreground">
+        Move classification
+      </div>
+      <div className="grid grid-cols-2 gap-1.5">
+        {order.map((k) => {
+          const m = ANNOTATION_META[k];
+          return (
+            <div
+              key={k}
+              className="flex items-center gap-2 rounded-lg px-2 py-1 text-xs"
+              style={{ background: m.bg, color: m.color }}
+            >
+              <span className="font-mono">{m.symbol}</span>
+              <span className="text-foreground/90">{m.label}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
