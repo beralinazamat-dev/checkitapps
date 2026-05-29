@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import { Toaster } from "sonner";
 import { Navbar } from "@/components/site/Navbar";
 import { Hero } from "@/components/site/Hero";
@@ -6,6 +7,7 @@ import { GameImporter } from "@/components/chess/GameImporter";
 import { LiveBoardShowcase } from "@/components/chess/LiveBoardShowcase";
 import { OpeningsExplorer } from "@/components/chess/OpeningsExplorer";
 import { WorldFootprint } from "@/components/site/WorldFootprint";
+import type { ImportedGame } from "@/lib/game-fetcher";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -28,6 +30,8 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
+  const [selectedGame, setSelectedGame] = useState<ImportedGame | null>(null);
+
   return (
     <main className="min-h-screen">
       <Toaster
@@ -43,8 +47,8 @@ function Index() {
       />
       <Navbar />
       <Hero />
-      <GameImporter />
-      <LiveBoardShowcase />
+      <GameImporter onGameSelected={setSelectedGame} />
+      <LiveBoardShowcase game={selectedGame} />
       <OpeningsExplorer />
       <WorldFootprint />
     </main>
