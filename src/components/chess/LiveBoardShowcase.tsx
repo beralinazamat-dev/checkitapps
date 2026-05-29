@@ -88,11 +88,11 @@ export function LiveBoardShowcase({ game }: { game?: ImportedGame | null }) {
           className="glass-strong mt-10 grid gap-4 rounded-3xl p-4 sm:p-6 lg:grid-cols-[auto_1fr_22rem]"
         >
           {/* Board + eval bar */}
-          <div className="flex gap-3">
-            <div className="hidden sm:block" style={{ width: 28 }}>
+          <div className="flex items-start gap-3 self-start">
+            <div className="hidden self-stretch sm:block" style={{ width: 28 }}>
               <EvalBar evalCp={evalCp} />
             </div>
-            <div className="relative aspect-square w-full max-w-[540px] overflow-hidden rounded-2xl ring-1 ring-glass-border lg:w-[440px]">
+            <div className="relative aspect-square w-full max-w-[540px] shrink-0 overflow-hidden rounded-2xl ring-1 ring-glass-border lg:w-[440px]">
               <Chessboard
                 options={{
                   position: fen,
