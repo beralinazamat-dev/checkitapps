@@ -16,6 +16,7 @@ import type { ImportedGame } from "@/lib/game-fetcher";
 import { EvalBar } from "./EvalBar";
 import { EvalGraph } from "./EvalGraph";
 import { SectionHeading } from "./GameImporter";
+import { EngineAnalysis } from "./EngineAnalysis";
 
 export function LiveBoardShowcase({ game }: { game?: ImportedGame | null }) {
   const displayGame = game ?? SAMPLE_GAME;
@@ -195,6 +196,9 @@ export function LiveBoardShowcase({ game }: { game?: ImportedGame | null }) {
                 </motion.div>
               </AnimatePresence>
             </div>
+
+            {/* Real Stockfish engine, live */}
+            <EngineAnalysis fen={fen} />
 
             {/* Eval graph */}
             <div className="glass h-32 rounded-2xl p-3">
