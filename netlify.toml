@@ -2,6 +2,11 @@
   command = "npm run build"
   publish = "dist"
 
+[build.environment]
+  # TanStack Start uses nitro under the hood. Tell it to build for Netlify.
+  NITRO_PRESET = "netlify"
+  NODE_VERSION = "20"
+
 [[redirects]]
   from = "/*"
   to = "/index.html"

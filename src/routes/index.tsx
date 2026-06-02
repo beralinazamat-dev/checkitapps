@@ -12,19 +12,22 @@ import type { ImportedGame } from "@/lib/game-fetcher";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "ChessLab Analyzer — Understand every move you play" },
+      { title: "ChessLab Analyzer — Chess Game Analysis Tool" },
       {
         name: "description",
         content:
-          "Modern AI chess analysis. Import any Chess.com or Lichess game, get Stockfish evaluations, classified annotations, and a personal AI coach.",
+          "Import any Chess.com or Lichess game and get deep Stockfish analysis: evaluations, best moves, principal variations, and an AI coach.",
       },
-      { property: "og:title", content: "ChessLab Analyzer" },
+      { name: "keywords", content: "chesslab analyzer, chesslab, chess, stockfish analysis, chess engine, chess.com analysis, lichess analysis, game review" },
+      { property: "og:title", content: "ChessLab Analyzer — Chess Game Analysis Tool" },
       {
         property: "og:description",
         content:
           "Stockfish-powered analysis, move-by-move annotations, and AI explanations for every level.",
       },
+      { property: "og:url", content: "https://chesslab-analyzer.lovable.app/" },
     ],
+    links: [{ rel: "canonical", href: "https://chesslab-analyzer.lovable.app/" }],
   }),
   component: Index,
 });
