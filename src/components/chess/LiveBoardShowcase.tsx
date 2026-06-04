@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Chess } from "chess.js";
+import { Chess, type Square } from "chess.js";
 import { Chessboard } from "react-chessboard";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -31,20 +31,23 @@ export function LiveBoardShowcase({ game }: { game?: ImportedGame | null }) {
   }, [gameKey]);
 
   // Build the position for the given ply by replaying SAN moves.
-  const fen = useMemo(() => {
+  const { fen, lastTo } = useMemo(() => {
     const chess = new Chess();
+    let lastToSq: Square | null = null;
     for (let i = 0; i < ply; i++) {
       try {
-        chess.move(moves[i].san);
+        const m = chess.move(moves[i].san);
+        if (m) lastToSq = m.to as Square;
       } catch {
         break;
       }
     }
-    return chess.fen();
+    return { fen: chess.fen(), lastTo: lastToSq };
   }, [ply, moves]);
 
   const currentMove = ply > 0 ? moves[ply - 1] : null;
   const evalCp = currentMove?.evalCp ?? 20;
+  const orientation: "white" | "black" = displayGame.viewerSide === "b" ? "black" : "white";
 
   useEffect(() => {
     if (!playing) return;
@@ -101,6 +104,7 @@ export function LiveBoardShowcase({ game }: { game?: ImportedGame | null }) {
                   allowDragging: false,
                   showNotation: true,
                   animationDurationInMs: 280,
+                  boardOrientation: orientation,
                   darkSquareStyle: { backgroundColor: "#3a4d5c" },
                   lightSquareStyle: { backgroundColor: "#e8edf2" },
                   boardStyle: {
@@ -112,8 +116,13 @@ export function LiveBoardShowcase({ game }: { game?: ImportedGame | null }) {
                 }}
               />
               </div>
-              {currentMove && (
-                <AnnotationBadge annotation={currentMove.annotation} san={currentMove.san} />
+              {currentMove && lastTo && (
+                <SquareAnnotation
+                  square={lastTo}
+                  orientation={orientation}
+                  annotation={currentMove.annotation}
+                  keyId={`${currentMove.ply}-${currentMove.annotation}`}
+                />
               )}
             </div>
           </div>
