@@ -1,6 +1,7 @@
-// Real Stockfish engine running in a Web Worker, loaded from CDN via Blob
-// importScripts trick so it works cross-origin without COOP/COEP headers.
-// Uses stockfish.js@10.0.2 (single-threaded asm.js) — works in every browser.
+// Real Stockfish 16 NNUE engine (the same class used by chess.com's analyzer)
+// running in a Web Worker. Loaded from jsdelivr CDN via a Blob+importScripts
+// trick so it works cross-origin without COOP/COEP headers.
+// Single-threaded WASM build — works in every modern browser.
 
 export interface EngineLine {
   depth: number;
@@ -13,11 +14,33 @@ export interface EngineLine {
 
 type Listener = (line: EngineLine) => void;
 
-const CDN_URL = "https://cdn.jsdelivr.net/npm/stockfish.js@10.0.2/stockfish.js";
+const SF_BASE = "https://cdn.jsdelivr.net/npm/stockfish@16.0.0/src/";
+const SF_JS = SF_BASE + "stockfish-nnue-16-single.js";
 
 function createWorker(): Worker {
-  // Cross-origin Workers must be loaded via Blob + importScripts.
-  const src = `importScripts(${JSON.stringify(CDN_URL)});`;
+  // We boot a Worker that:
+  //  1. Tells the Emscripten module where to fetch the .wasm and .nnue from (jsdelivr has CORS).
+  //  2. Loads the Stockfish glue via importScripts (cross-origin allowed inside a Worker).
+  //  3. Awaits the Stockfish() factory, then pipes UCI messages both directions.
+  const src = `
+    self.Module = {
+      locateFile: function (path) { return ${JSON.stringify(SF_BASE)} + path; },
+      print: function (line) { self.postMessage(line); },
+      printErr: function (line) { self.postMessage(line); },
+    };
+    importScripts(${JSON.stringify(SF_JS)});
+    var _sfReady = Stockfish().then(function (sf) {
+      sf.addMessageListener(function (line) { self.postMessage(line); });
+      return sf;
+    });
+    var _queue = [];
+    self.onmessage = function (e) {
+      _sfReady.then(function (sf) {
+        if (_queue.length) { _queue.forEach(function (c) { sf.postMessage(c); }); _queue = []; }
+        sf.postMessage(e.data);
+      });
+    };
+  `;
   const blob = new Blob([src], { type: "application/javascript" });
   return new Worker(URL.createObjectURL(blob));
 }
