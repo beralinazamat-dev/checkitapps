@@ -11,7 +11,7 @@ export interface UseStockfishResult {
  * Spin up a Stockfish Web Worker once and re-analyze whenever the FEN changes.
  * Returns live engine output: depth, evaluation, best move, principal variation.
  */
-export function useStockfish(fen: string, depth = 16): UseStockfishResult {
+export function useStockfish(fen: string, depth = 22): UseStockfishResult {
   const engineRef = useRef<StockfishEngine | null>(null);
   const [line, setLine] = useState<EngineLine | null>(null);
   const [status, setStatus] = useState<UseStockfishResult["status"]>("loading");
