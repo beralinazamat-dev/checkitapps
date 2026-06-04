@@ -18,6 +18,8 @@ export interface ImportedGame {
   url?: string;
   pgn: string;
   moves: ImportedMove[];
+  /** Which side the imported user played, if known. Controls board orientation. */
+  viewerSide?: "w" | "b";
 }
 
 export interface GameSummary {
