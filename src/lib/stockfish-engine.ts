@@ -14,7 +14,7 @@ export interface EngineLine {
 
 type Listener = (line: EngineLine) => void;
 
-const SF_BASE = "https://cdn.jsdelivr.net/npm/stockfish@16.0.0/src/";
+const SF_BASE = "https://cdn.jsdelivr.net/npm/stockfish@16.1.0/src/";
 const SF_JS = SF_BASE + "stockfish-nnue-16-single.js";
 
 function createWorker(): Worker {

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Chess } from "chess.js";
+import { Chess, type Square } from "chess.js";
 import { Chessboard } from "react-chessboard";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -31,20 +31,24 @@ export function LiveBoardShowcase({ game }: { game?: ImportedGame | null }) {
   }, [gameKey]);
 
   // Build the position for the given ply by replaying SAN moves.
-  const fen = useMemo(() => {
+  const { fen, lastTo } = useMemo(() => {
     const chess = new Chess();
+    let lastToSq: Square | null = null;
     for (let i = 0; i < ply; i++) {
       try {
-        chess.move(moves[i].san);
+        const m = chess.move(moves[i].san);
+        if (m) lastToSq = m.to as Square;
       } catch {
         break;
       }
     }
-    return chess.fen();
+    return { fen: chess.fen(), lastTo: lastToSq };
   }, [ply, moves]);
 
   const currentMove = ply > 0 ? moves[ply - 1] : null;
   const evalCp = currentMove?.evalCp ?? 20;
+  const orientation: "white" | "black" =
+    (displayGame as ImportedGame).viewerSide === "b" ? "black" : "white";
 
   useEffect(() => {
     if (!playing) return;
@@ -101,6 +105,7 @@ export function LiveBoardShowcase({ game }: { game?: ImportedGame | null }) {
                   allowDragging: false,
                   showNotation: true,
                   animationDurationInMs: 280,
+                  boardOrientation: orientation,
                   darkSquareStyle: { backgroundColor: "#3a4d5c" },
                   lightSquareStyle: { backgroundColor: "#e8edf2" },
                   boardStyle: {
@@ -112,8 +117,13 @@ export function LiveBoardShowcase({ game }: { game?: ImportedGame | null }) {
                 }}
               />
               </div>
-              {currentMove && (
-                <AnnotationBadge annotation={currentMove.annotation} san={currentMove.san} />
+              {currentMove && lastTo && (
+                <SquareAnnotation
+                  square={lastTo}
+                  orientation={orientation}
+                  annotation={currentMove.annotation}
+                  keyId={`${currentMove.ply}-${currentMove.annotation}`}
+                />
               )}
             </div>
           </div>
@@ -321,6 +331,54 @@ function AnnotationBadge({
       >
         <span className="font-mono">{meta.symbol}</span>
         {san} · {meta.label}
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
+function SquareAnnotation({
+  square,
+  orientation,
+  annotation,
+  keyId,
+}: {
+  square: Square;
+  orientation: "white" | "black";
+  annotation: keyof typeof ANNOTATION_META;
+  keyId: string;
+}) {
+  const meta = ANNOTATION_META[annotation];
+  const file = square.charCodeAt(0) - 97; // a=0..h=7
+  const rank = parseInt(square[1]!, 10) - 1; // 1=0..8=7
+  const col = orientation === "white" ? file : 7 - file;
+  const row = orientation === "white" ? 7 - rank : rank;
+  return (
+    <AnimatePresence>
+      <motion.div
+        key={keyId}
+        initial={{ opacity: 0, scale: 0.4 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.4 }}
+        transition={{ type: "spring", bounce: 0.45, duration: 0.45 }}
+        className="pointer-events-none absolute"
+        style={{
+          left: `${(col / 8) * 100}%`,
+          top: `${(row / 8) * 100}%`,
+          width: "12.5%",
+          height: "12.5%",
+        }}
+      >
+        <div
+          className="absolute -right-1 -top-1 grid h-6 w-6 place-items-center rounded-full font-mono text-[11px] font-bold shadow-lg"
+          style={{
+            background: meta.color,
+            color: "#0b0f14",
+            boxShadow: `0 0 0 2px ${meta.ring}, 0 4px 10px rgb(0 0 0 / 0.4)`,
+          }}
+          title={meta.label}
+        >
+          {meta.symbol}
+        </div>
       </motion.div>
     </AnimatePresence>
   );

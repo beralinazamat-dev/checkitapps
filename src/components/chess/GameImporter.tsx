@@ -30,6 +30,7 @@ export function GameImporter({ onGameSelected }: { onGameSelected: (game: Import
   const [games, setGames] = useState<GameSummary[]>([]);
   const [platform, setPlatform] = useState<"chess.com" | "lichess" | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [searchedUser, setSearchedUser] = useState<string | null>(null);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -68,6 +69,7 @@ export function GameImporter({ onGameSelected }: { onGameSelected: (game: Import
       }
 
       const username = detected.value;
+      setSearchedUser(username);
       const result = detected.kind === "chesscom-user"
         ? { games: await fetchChessComGames(username, 100), platform: "chess.com" as const }
         : detected.kind === "lichess-user"
@@ -91,7 +93,13 @@ export function GameImporter({ onGameSelected }: { onGameSelected: (game: Import
 
   function analyzeGame(game: GameSummary) {
     setSelectedId(game.id);
-    onGameSelected(summaryToGame(game));
+    const loaded = summaryToGame(game);
+    if (searchedUser) {
+      const u = searchedUser.toLowerCase();
+      if (loaded.white.toLowerCase() === u) loaded.viewerSide = "w";
+      else if (loaded.black.toLowerCase() === u) loaded.viewerSide = "b";
+    }
+    onGameSelected(loaded);
     toast.success("Game loaded into the analysis board.");
     document.querySelector("#board")?.scrollIntoView({ behavior: "smooth" });
   }
