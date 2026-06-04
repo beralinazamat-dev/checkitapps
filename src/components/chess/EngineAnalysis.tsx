@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { useStockfish } from "@/hooks/use-stockfish";
 
 export function EngineAnalysis({ fen }: { fen: string }) {
-  const { line, status, error } = useStockfish(fen, 16);
+  const { line, status, error } = useStockfish(fen, 22);
 
   // Convert UCI principal variation into readable SAN for humans.
   const sanPv = useMemo(() => {
@@ -38,7 +38,7 @@ export function EngineAnalysis({ fen }: { fen: string }) {
       <div className="flex items-center justify-between text-xs uppercase tracking-wider text-emerald">
         <span className="flex items-center gap-2">
           <Cpu className="h-3.5 w-3.5" />
-          Stockfish 10 · Live Engine
+          Stockfish 16 NNUE · Live Engine
         </span>
         <span className="font-mono text-muted-foreground">
           {status === "loading" && (
