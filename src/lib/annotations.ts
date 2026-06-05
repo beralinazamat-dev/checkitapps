@@ -1,0 +1,100 @@
+import type { Annotation } from "./sample-game";
+
+export const ANNOTATION_META: Record<
+  Annotation,
+  { label: string; symbol: string; color: string; bg: string; ring: string; desc: string }
+> = {
+  brilliant: {
+    label: "Brilliant",
+    symbol: "!!",
+    color: "oklch(0.78 0.13 195)",
+    bg: "oklch(0.78 0.13 195 / 0.15)",
+    ring: "oklch(0.78 0.13 195 / 0.45)",
+    desc: "A spectacular, hard-to-find move.",
+  },
+  great: {
+    label: "Great Move",
+    symbol: "!",
+    color: "oklch(0.72 0.11 245)",
+    bg: "oklch(0.72 0.11 245 / 0.15)",
+    ring: "oklch(0.72 0.11 245 / 0.45)",
+    desc: "A strong move that changes the evaluation.",
+  },
+  best: {
+    label: "Best Move",
+    symbol: "★",
+    color: "oklch(0.78 0.2 140)",
+    bg: "oklch(0.78 0.2 140 / 0.15)",
+    ring: "oklch(0.78 0.2 140 / 0.45)",
+    desc: "The engine's top choice.",
+  },
+  excellent: {
+    label: "Excellent",
+    symbol: "👍",
+    color: "oklch(0.78 0.18 145)",
+    bg: "oklch(0.78 0.18 145 / 0.12)",
+    ring: "oklch(0.78 0.18 145 / 0.4)",
+    desc: "Nearly the best — a confident choice.",
+  },
+  good: {
+    label: "Good",
+    symbol: "✓",
+    color: "oklch(0.78 0.08 150)",
+    bg: "oklch(0.78 0.08 150 / 0.1)",
+    ring: "oklch(0.78 0.08 150 / 0.35)",
+    desc: "Solid and reasonable.",
+  },
+  book: {
+    label: "Book",
+    symbol: "📖",
+    color: "oklch(0.72 0.08 65)",
+    bg: "oklch(0.72 0.08 65 / 0.12)",
+    ring: "oklch(0.72 0.08 65 / 0.4)",
+    desc: "A known theoretical opening move.",
+  },
+  inaccuracy: {
+    label: "Inaccuracy",
+    symbol: "?!",
+    color: "oklch(0.82 0.17 90)",
+    bg: "oklch(0.82 0.17 90 / 0.12)",
+    ring: "oklch(0.82 0.17 90 / 0.4)",
+    desc: "Slightly imprecise — there was something better.",
+  },
+  mistake: {
+    label: "Mistake",
+    symbol: "?",
+    color: "oklch(0.75 0.18 55)",
+    bg: "oklch(0.75 0.18 55 / 0.15)",
+    ring: "oklch(0.75 0.18 55 / 0.45)",
+    desc: "A clear mistake that loses ground.",
+  },
+  miss: {
+    label: "Miss",
+    symbol: "✕",
+    color: "oklch(0.72 0.18 22)",
+    bg: "oklch(0.72 0.18 22 / 0.13)",
+    ring: "oklch(0.72 0.18 22 / 0.4)",
+    desc: "Missed a winning tactic.",
+  },
+  blunder: {
+    label: "Blunder",
+    symbol: "??",
+    color: "oklch(0.65 0.25 25)",
+    bg: "oklch(0.65 0.25 25 / 0.18)",
+    ring: "oklch(0.65 0.25 25 / 0.5)",
+    desc: "A serious error that changes the result.",
+  },
+};
+
+export const ANNOTATION_ORDER: Annotation[] = [
+  "brilliant",
+  "great",
+  "best",
+  "excellent",
+  "good",
+  "book",
+  "inaccuracy",
+  "mistake",
+  "miss",
+  "blunder",
+];
