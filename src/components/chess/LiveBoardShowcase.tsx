@@ -11,7 +11,8 @@ import {
   Sparkles,
 } from "lucide-react";
 import { SAMPLE_GAME } from "@/lib/sample-game";
-import { ANNOTATION_META } from "@/lib/annotations";
+import { ANNOTATION_META, ANNOTATION_ORDER } from "@/lib/annotations";
+import type { Annotation } from "@/lib/sample-game";
 import type { ImportedGame } from "@/lib/game-fetcher";
 import { EvalBar } from "./EvalBar";
 import { EvalGraph } from "./EvalGraph";
@@ -75,6 +76,21 @@ export function LiveBoardShowcase({ game }: { game?: ImportedGame | null }) {
     if (idx % 2 === 0) slot.white = m;
     else slot.black = m;
   });
+
+  // Per-player tally of move classifications across the entire game.
+  const tallies = useMemo(() => {
+    const empty = () =>
+      ANNOTATION_ORDER.reduce(
+        (acc, k) => ((acc[k] = 0), acc),
+        {} as Record<Annotation, number>,
+      );
+    const white = empty();
+    const black = empty();
+    for (const m of moves) {
+      (m.side === "w" ? white : black)[m.annotation]++;
+    }
+    return { white, black };
+  }, [moves]);
 
   return (
     <section id="board" className="relative py-12 sm:py-24">
@@ -226,6 +242,13 @@ export function LiveBoardShowcase({ game }: { game?: ImportedGame | null }) {
                 <EvalGraph moves={moves} currentPly={ply} onSelect={setPly} />
               </div>
             </div>
+
+            {/* Full-game classification summary */}
+            <GameSummary
+              whiteName={displayGame.white}
+              blackName={displayGame.black}
+              tallies={tallies}
+            />
           </div>
 
           {/* Right: move list */}
