@@ -22,7 +22,7 @@ export const ANNOTATION_META: Record<
   },
   best: {
     label: "Best",
-    symbol: "★",
+    symbol: "!",
     color: "oklch(0.82 0.17 80)",
     bg: "oklch(0.82 0.17 80 / 0.15)",
     ring: "oklch(0.82 0.17 80 / 0.45)",
@@ -38,7 +38,7 @@ export const ANNOTATION_META: Record<
   },
   good: {
     label: "Good",
-    symbol: "✓",
+    symbol: "",
     color: "oklch(0.78 0.1 152)",
     bg: "oklch(0.78 0.1 152 / 0.1)",
     ring: "oklch(0.78 0.1 152 / 0.35)",
@@ -46,7 +46,7 @@ export const ANNOTATION_META: Record<
   },
   book: {
     label: "Book",
-    symbol: "▦",
+    symbol: "",
     color: "oklch(0.78 0.08 252)",
     bg: "oklch(0.78 0.08 252 / 0.12)",
     ring: "oklch(0.78 0.08 252 / 0.4)",
@@ -70,7 +70,7 @@ export const ANNOTATION_META: Record<
   },
   miss: {
     label: "Miss",
-    symbol: "×",
+    symbol: "?",
     color: "oklch(0.72 0.22 22)",
     bg: "oklch(0.72 0.22 22 / 0.12)",
     ring: "oklch(0.72 0.22 22 / 0.4)",
