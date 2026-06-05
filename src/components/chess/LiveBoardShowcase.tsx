@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { Chess, type Square } from "chess.js";
 import { Chessboard } from "react-chessboard";
 import { motion, AnimatePresence } from "framer-motion";
@@ -489,16 +489,14 @@ function GameSummary({
           const b = tallies.black[k];
           if (w === 0 && b === 0) return null;
           return (
-            <>
+            <Fragment key={k}>
               <div
-                key={`w-${k}`}
                 className="text-right font-mono tabular-nums"
                 style={{ color: m.color }}
               >
                 {w}
               </div>
               <div
-                key={`l-${k}`}
                 className="flex items-center justify-center gap-1.5 rounded-md px-2 py-0.5 text-xs"
                 style={{ background: m.bg, color: m.color }}
                 title={m.label}
@@ -507,13 +505,12 @@ function GameSummary({
                 <span className="hidden sm:inline">{m.label}</span>
               </div>
               <div
-                key={`b-${k}`}
                 className="text-left font-mono tabular-nums"
                 style={{ color: m.color }}
               >
                 {b}
               </div>
-            </>
+            </Fragment>
           );
         })}
       </div>
