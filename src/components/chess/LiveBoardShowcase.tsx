@@ -463,3 +463,60 @@ function AnnotationLegend() {
     </div>
   );
 }
+
+function GameSummary({
+  whiteName,
+  blackName,
+  tallies,
+}: {
+  whiteName: string;
+  blackName: string;
+  tallies: { white: Record<Annotation, number>; black: Record<Annotation, number> };
+}) {
+  return (
+    <div className="glass rounded-2xl p-4">
+      <div className="flex items-center justify-between px-1 pb-3 text-xs uppercase tracking-wider text-muted-foreground">
+        <span>Game report</span>
+        <span>Move totals</span>
+      </div>
+      <div className="grid grid-cols-[1fr_auto_1fr] gap-x-3 gap-y-1.5 text-sm">
+        <div className="text-right font-medium text-foreground/90 truncate">{whiteName}</div>
+        <div className="text-center text-xs text-muted-foreground">●</div>
+        <div className="text-left font-medium text-foreground/90 truncate">{blackName}</div>
+        {ANNOTATION_ORDER.map((k) => {
+          const m = ANNOTATION_META[k];
+          const w = tallies.white[k];
+          const b = tallies.black[k];
+          if (w === 0 && b === 0) return null;
+          return (
+            <>
+              <div
+                key={`w-${k}`}
+                className="text-right font-mono tabular-nums"
+                style={{ color: m.color }}
+              >
+                {w}
+              </div>
+              <div
+                key={`l-${k}`}
+                className="flex items-center justify-center gap-1.5 rounded-md px-2 py-0.5 text-xs"
+                style={{ background: m.bg, color: m.color }}
+                title={m.label}
+              >
+                <span className="font-mono">{m.symbol}</span>
+                <span className="hidden sm:inline">{m.label}</span>
+              </div>
+              <div
+                key={`b-${k}`}
+                className="text-left font-mono tabular-nums"
+                style={{ color: m.color }}
+              >
+                {b}
+              </div>
+            </>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
