@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { Chess, type Square } from "chess.js";
 import { Chessboard } from "react-chessboard";
 import { motion, AnimatePresence } from "framer-motion";
@@ -11,7 +11,8 @@ import {
   Sparkles,
 } from "lucide-react";
 import { SAMPLE_GAME } from "@/lib/sample-game";
-import { ANNOTATION_META } from "@/lib/annotations";
+import { ANNOTATION_META, ANNOTATION_ORDER } from "@/lib/annotations";
+import type { Annotation } from "@/lib/sample-game";
 import type { ImportedGame } from "@/lib/game-fetcher";
 import { EvalBar } from "./EvalBar";
 import { EvalGraph } from "./EvalGraph";
@@ -75,6 +76,21 @@ export function LiveBoardShowcase({ game }: { game?: ImportedGame | null }) {
     if (idx % 2 === 0) slot.white = m;
     else slot.black = m;
   });
+
+  // Per-player tally of move classifications across the entire game.
+  const tallies = useMemo(() => {
+    const empty = () =>
+      ANNOTATION_ORDER.reduce(
+        (acc, k) => ((acc[k] = 0), acc),
+        {} as Record<Annotation, number>,
+      );
+    const white = empty();
+    const black = empty();
+    for (const m of moves) {
+      (m.side === "w" ? white : black)[m.annotation]++;
+    }
+    return { white, black };
+  }, [moves]);
 
   return (
     <section id="board" className="relative py-12 sm:py-24">
@@ -226,6 +242,13 @@ export function LiveBoardShowcase({ game }: { game?: ImportedGame | null }) {
                 <EvalGraph moves={moves} currentPly={ply} onSelect={setPly} />
               </div>
             </div>
+
+            {/* Full-game classification summary */}
+            <GameSummary
+              whiteName={displayGame.white}
+              blackName={displayGame.black}
+              tallies={tallies}
+            />
           </div>
 
           {/* Right: move list */}
@@ -434,6 +457,60 @@ function AnnotationLegend() {
               <span className="font-mono">{m.symbol}</span>
               <span className="text-foreground/90">{m.label}</span>
             </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function GameSummary({
+  whiteName,
+  blackName,
+  tallies,
+}: {
+  whiteName: string;
+  blackName: string;
+  tallies: { white: Record<Annotation, number>; black: Record<Annotation, number> };
+}) {
+  return (
+    <div className="glass rounded-2xl p-4">
+      <div className="flex items-center justify-between px-1 pb-3 text-xs uppercase tracking-wider text-muted-foreground">
+        <span>Game report</span>
+        <span>Move totals</span>
+      </div>
+      <div className="grid grid-cols-[1fr_auto_1fr] gap-x-3 gap-y-1.5 text-sm">
+        <div className="text-right font-medium text-foreground/90 truncate">{whiteName}</div>
+        <div className="text-center text-xs text-muted-foreground">●</div>
+        <div className="text-left font-medium text-foreground/90 truncate">{blackName}</div>
+        {ANNOTATION_ORDER.map((k) => {
+          const m = ANNOTATION_META[k];
+          const w = tallies.white[k];
+          const b = tallies.black[k];
+          if (w === 0 && b === 0) return null;
+          return (
+            <Fragment key={k}>
+              <div
+                className="text-right font-mono tabular-nums"
+                style={{ color: m.color }}
+              >
+                {w}
+              </div>
+              <div
+                className="flex items-center justify-center gap-1.5 rounded-md px-2 py-0.5 text-xs"
+                style={{ background: m.bg, color: m.color }}
+                title={m.label}
+              >
+                <span className="font-mono">{m.symbol}</span>
+                <span className="hidden sm:inline">{m.label}</span>
+              </div>
+              <div
+                className="text-left font-mono tabular-nums"
+                style={{ color: m.color }}
+              >
+                {b}
+              </div>
+            </Fragment>
           );
         })}
       </div>
