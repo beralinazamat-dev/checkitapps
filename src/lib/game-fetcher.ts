@@ -288,9 +288,11 @@ export function chessComCallbackToGame(payload: ChessComCallbackPayload): Import
 }
 
 export async function fetchChessComGame(id: string): Promise<ImportedGame> {
-  const r = await fetch(`/api/chesscom-game/${encodeURIComponent(id)}`);
+  const r = await fetch(`https://www.chess.com/callback/live/game/${encodeURIComponent(id)}`, {
+    headers: { Accept: "application/json" },
+  });
   if (!r.ok) throw new Error(await r.text());
-  return r.json();
+  return chessComCallbackToGame(await r.json());
 }
 
 /** Fetch up to `limit` most recent Lichess games for a username (NDJSON). */

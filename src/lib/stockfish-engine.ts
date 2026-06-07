@@ -1,7 +1,6 @@
-// Real Stockfish 16 NNUE engine (the same class used by chess.com's analyzer)
-// running in a Web Worker. Loaded from jsdelivr CDN via a Blob+importScripts
-// trick so it works cross-origin without COOP/COEP headers.
-// Single-threaded WASM build — works in every modern browser.
+// Real Stockfish 16 NNUE engine running in a same-origin Web Worker.
+// The JS + WASM files live in public/vendor/stockfish so exported static builds
+// also work on hosts that block CDN/blob worker loading.
 
 export interface EngineLine {
   depth: number;
@@ -14,35 +13,13 @@ export interface EngineLine {
 
 type Listener = (line: EngineLine) => void;
 
-const SF_BASE = "https://cdn.jsdelivr.net/npm/stockfish@16.0.0/src/";
-const SF_JS = SF_BASE + "stockfish-nnue-16-single.js";
+const SF_JS = "/vendor/stockfish/stockfish-nnue-16-single.js";
+const SF_WASM = "/vendor/stockfish/stockfish-nnue-16-single.wasm";
 
 function createWorker(): Worker {
-  // We boot a Worker that:
-  //  1. Tells the Emscripten module where to fetch the .wasm and .nnue from (jsdelivr has CORS).
-  //  2. Loads the Stockfish glue via importScripts (cross-origin allowed inside a Worker).
-  //  3. Awaits the Stockfish() factory, then pipes UCI messages both directions.
-  const src = `
-    self.Module = {
-      locateFile: function (path) { return ${JSON.stringify(SF_BASE)} + path; },
-      print: function (line) { self.postMessage(line); },
-      printErr: function (line) { self.postMessage(line); },
-    };
-    importScripts(${JSON.stringify(SF_JS)});
-    var _sfReady = Stockfish().then(function (sf) {
-      sf.addMessageListener(function (line) { self.postMessage(line); });
-      return sf;
-    });
-    var _queue = [];
-    self.onmessage = function (e) {
-      _sfReady.then(function (sf) {
-        if (_queue.length) { _queue.forEach(function (c) { sf.postMessage(c); }); _queue = []; }
-        sf.postMessage(e.data);
-      });
-    };
-  `;
-  const blob = new Blob([src], { type: "application/javascript" });
-  return new Worker(URL.createObjectURL(blob));
+  const workerUrl = new URL(SF_JS, window.location.origin);
+  workerUrl.hash = encodeURIComponent(SF_WASM);
+  return new Worker(workerUrl, { name: "stockfish-16-nnue" });
 }
 
 export class StockfishEngine {
