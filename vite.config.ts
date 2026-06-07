@@ -7,6 +7,10 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 export default defineConfig({
+  // Cloudflare Pages / wrangler statically scans this file for a `plugins`
+  // array. The Lovable wrapper injects all real plugins internally, but we
+  // expose an empty literal array here so the static check passes.
+  plugins: [],
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
