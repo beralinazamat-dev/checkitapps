@@ -141,7 +141,7 @@ export function WorldFootprint() {
             Our footprint
           </span>
           <h2 className="mt-5 font-display text-3xl font-semibold tracking-tight sm:text-5xl">
-            ChessLab Analyzer is{" "}
+            CheckItApp is{" "}
             <span className="text-gradient">everywhere</span> and is making everything to make chess
             more developed.
           </h2>
@@ -259,7 +259,7 @@ export function WorldFootprint() {
               <Crown className="h-3.5 w-3.5" strokeWidth={2.5} />
             </span>
             <span className="text-sm">
-              <span className="font-semibold">ChessLab Analyzer</span>{" "}
+              <span className="font-semibold">CheckItApp</span>{" "}
               <span className="text-muted-foreground">· © {new Date().getFullYear()}</span>
             </span>
           </div>

@@ -76,7 +76,7 @@
 }
 
 :root {
-  /* ChessLab Analyzer — dark premium theme (default). */
+  /* CheckItApp — dark premium theme (default). */
   --radius: 0.875rem;
   --background: oklch(0.16 0.018 250);
   --foreground: oklch(0.97 0.01 250);

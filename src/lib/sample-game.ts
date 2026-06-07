@@ -1,5 +1,5 @@
 // Morphy vs Duke of Brunswick & Count Isouard, Paris Opera, 1858.
-// Hand-annotated for the ChessLab Analyzer showcase.
+// Hand-annotated for the CheckItApp showcase.
 
 export type Annotation =
   | "brilliant"

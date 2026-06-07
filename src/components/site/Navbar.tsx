@@ -16,7 +16,7 @@ export function Navbar() {
               <Crown className="h-4 w-4" strokeWidth={2.5} />
             </span>
             <span className="font-display text-base font-semibold tracking-tight">
-              ChessLab <span className="text-muted-foreground">Analyzer</span>
+              CheckItApp
             </span>
           </a>
           <div className="hidden items-center gap-7 text-sm text-muted-foreground md:flex">

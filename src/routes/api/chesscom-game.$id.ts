@@ -11,7 +11,7 @@ export const Route = createFileRoute("/api/chesscom-game/$id")({
         const response = await fetch(`https://www.chess.com/callback/live/game/${encodeURIComponent(id)}`, {
           headers: {
             Accept: "application/json",
-            "User-Agent": "ChessLab Analyzer",
+            "User-Agent": "CheckItApp",
           },
         });
 
