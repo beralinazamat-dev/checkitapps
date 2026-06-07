@@ -12,14 +12,14 @@ import type { ImportedGame } from "@/lib/game-fetcher";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "ChessLab Analyzer — Chess Game Analysis Tool" },
+      { title: "CheckItApp — Chess Game Analysis Tool" },
       {
         name: "description",
         content:
           "Import any Chess.com or Lichess game and get deep Stockfish analysis: evaluations, best moves, principal variations, and an AI coach.",
       },
-      { name: "keywords", content: "chesslab analyzer, chesslab, chess, stockfish analysis, chess engine, chess.com analysis, lichess analysis, game review" },
-      { property: "og:title", content: "ChessLab Analyzer — Chess Game Analysis Tool" },
+      { name: "keywords", content: "checkitapp, chesslab, chess, stockfish analysis, chess engine, chess.com analysis, lichess analysis, game review" },
+      { property: "og:title", content: "CheckItApp — Chess Game Analysis Tool" },
       {
         property: "og:description",
         content:
