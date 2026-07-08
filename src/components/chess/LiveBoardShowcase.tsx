@@ -413,6 +413,7 @@ export function LiveBoardShowcase({ game }: { game?: ImportedGame | null }) {
           </div>
         </motion.div>
       </div>
+      <AIKeyDialog open={aiOpen} onClose={() => setAiOpen(false)} />
     </section>
   );
 }
