@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://chesslab-analyzer.lovable.app/sitemap.xml

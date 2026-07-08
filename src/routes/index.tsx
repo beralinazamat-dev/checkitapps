@@ -7,6 +7,7 @@ import { GameImporter } from "@/components/chess/GameImporter";
 import { LiveBoardShowcase } from "@/components/chess/LiveBoardShowcase";
 import { OpeningsExplorer } from "@/components/chess/OpeningsExplorer";
 import { WorldFootprint } from "@/components/site/WorldFootprint";
+import { SocialSection } from "@/components/site/SocialSection";
 import type { ImportedGame } from "@/lib/game-fetcher";
 
 export const Route = createFileRoute("/")({
@@ -53,6 +54,7 @@ function Index() {
       <GameImporter onGameSelected={setSelectedGame} />
       <LiveBoardShowcase game={selectedGame} />
       <OpeningsExplorer />
+      <SocialSection />
       <WorldFootprint />
     </main>
   );

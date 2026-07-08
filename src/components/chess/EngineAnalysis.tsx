@@ -1,10 +1,19 @@
 import { Cpu, Loader2 } from "lucide-react";
 import { Chess } from "chess.js";
 import { useMemo } from "react";
-import { useStockfish } from "@/hooks/use-stockfish";
+import type { EngineLine } from "@/lib/stockfish-engine";
 
-export function EngineAnalysis({ fen }: { fen: string }) {
-  const { line, status, error } = useStockfish(fen, 22);
+export function EngineAnalysis({
+  fen,
+  line,
+  status,
+  error,
+}: {
+  fen: string;
+  line: EngineLine | null;
+  status: "loading" | "ready" | "thinking" | "error";
+  error: string | null;
+}) {
 
   // Convert UCI principal variation into readable SAN for humans.
   const sanPv = useMemo(() => {
