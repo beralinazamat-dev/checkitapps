@@ -121,10 +121,15 @@ export function LiveBoardShowcase({ game }: { game?: ImportedGame | null }) {
 
   async function runDeepAnalysis() {
     if (analyzing) return;
+    const source = (initialGame as ImportedGame).pgn ? (initialGame as ImportedGame) : null;
+    if (!source) {
+      toast.error("Import a real game (URL / username / PGN) first — the sample game has no PGN.");
+      return;
+    }
     setAnalyzing(true);
     setProgress({ done: 0, total: moves.length, currentPly: 0 });
     try {
-      const result = await analyzeGameWithStockfish(initialGame, 14, (p) => setProgress(p));
+      const result = await analyzeGameWithStockfish(source, 14, (p) => setProgress(p));
       setAnalyzed(result);
       toast.success("Deep Stockfish analysis complete.");
     } catch (e) {
@@ -214,6 +219,13 @@ export function LiveBoardShowcase({ game }: { game?: ImportedGame | null }) {
                 }}
               />
               </div>
+              {bestArrow && (
+                <BestMoveArrow
+                  from={bestArrow.from}
+                  to={bestArrow.to}
+                  orientation={orientation}
+                />
+              )}
               {currentMove && lastTo && (
                 <SquareAnnotation
                   square={lastTo}
@@ -264,6 +276,49 @@ export function LiveBoardShowcase({ game }: { game?: ImportedGame | null }) {
               </span>
             </div>
 
+            {/* Deep-analysis + AI action row */}
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={runDeepAnalysis}
+                disabled={analyzing}
+                className="inline-flex items-center gap-2 rounded-full border border-emerald/30 bg-emerald/10 px-3.5 py-1.5 text-xs font-medium text-emerald transition hover:bg-emerald/20 disabled:opacity-60"
+              >
+                {analyzing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Cpu className="h-3.5 w-3.5" />}
+                {analyzing
+                  ? `Analyzing ${progress?.done ?? 0}/${progress?.total ?? "…"}`
+                  : analyzed
+                    ? "Re-run deep analysis"
+                    : "Deep Stockfish analysis"}
+              </button>
+              <button
+                onClick={askAI}
+                disabled={aiLoading || !currentMove}
+                className="inline-flex items-center gap-2 rounded-full border border-sky/30 bg-sky/10 px-3.5 py-1.5 text-xs font-medium text-sky transition hover:bg-sky/20 disabled:opacity-60"
+              >
+                {aiLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                Ask AI about this move
+              </button>
+              <button
+                onClick={() => setAiOpen(true)}
+                className="inline-flex items-center gap-1 rounded-full border border-glass-border px-3 py-1.5 text-xs text-muted-foreground transition hover:text-foreground"
+                title="AI settings"
+              >
+                <KeyRound className="h-3.5 w-3.5" />
+                AI key
+              </button>
+            </div>
+
+            {aiText && (
+              <div className="glass rounded-2xl p-4">
+                <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-sky">
+                  <Sparkles className="h-3.5 w-3.5" /> AI explanation
+                </div>
+                <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-foreground/90">
+                  {aiText}
+                </p>
+              </div>
+            )}
+
             {/* AI Coach panel */}
             <div className="glass min-h-[148px] rounded-2xl p-4">
               <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-emerald">
@@ -305,7 +360,7 @@ export function LiveBoardShowcase({ game }: { game?: ImportedGame | null }) {
             </div>
 
             {/* Real Stockfish engine, live */}
-            <EngineAnalysis fen={fen} />
+            <EngineAnalysis fen={fen} line={liveLine} status={liveStatus} error={liveError} />
 
             {/* Eval graph */}
             <div className="glass h-32 rounded-2xl p-3">
