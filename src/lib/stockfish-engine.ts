@@ -138,4 +138,46 @@ export class StockfishEngine {
     this.worker = null;
     this.listeners.clear();
   }
+
+  /**
+   * Analyze a single position to a fixed depth and resolve with the final
+   * engine line (evaluation + best PV) once Stockfish emits `bestmove`.
+   * Used by the whole-game classifier — it queues positions one at a time.
+   */
+  analyzePosition(fen: string, depth: number): Promise<EngineLine> {
+    return new Promise(async (resolve, reject) => {
+      try {
+        await this.readyPromise;
+      } catch (e) {
+        reject(e);
+        return;
+      }
+      const parts = fen.split(" ");
+      this.currentSideToMove = (parts[1] as "w" | "b") ?? "w";
+      this.latest = null;
+      const originalHandler = this.worker!.onmessage!;
+      const messages: string[] = [];
+      this.worker!.onmessage = (ev: MessageEvent) => {
+        const line = typeof ev.data === "string" ? ev.data : String(ev.data);
+        messages.push(line);
+        this.handleMessage(line);
+        if (line.startsWith("bestmove")) {
+          this.worker!.onmessage = originalHandler;
+          const result: EngineLine = this.latest ?? {
+            depth: 0,
+            scoreCp: 0,
+            scoreWhiteCp: 0,
+            mate: null,
+            pv: [],
+            bestMove: line.split(/\s+/)[1] ?? null,
+          };
+          resolve(result);
+        }
+      };
+      this.send("stop");
+      this.send("ucinewgame");
+      this.send(`position fen ${fen}`);
+      this.send(`go depth ${depth}`);
+    });
+  }
 }
