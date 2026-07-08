@@ -9,6 +9,9 @@ import {
   Play,
   Pause,
   Sparkles,
+  Cpu,
+  KeyRound,
+  Loader2,
 } from "lucide-react";
 import { SAMPLE_GAME } from "@/lib/sample-game";
 import { ANNOTATION_META, ANNOTATION_ORDER } from "@/lib/annotations";
@@ -18,17 +21,32 @@ import { EvalBar } from "./EvalBar";
 import { EvalGraph } from "./EvalGraph";
 import { SectionHeading } from "./GameImporter";
 import { EngineAnalysis } from "./EngineAnalysis";
+import { BestMoveArrow } from "./BestMoveArrow";
+import { useStockfish } from "@/hooks/use-stockfish";
+import { analyzeGameWithStockfish, type ClassificationProgress } from "@/lib/stockfish-classifier";
+import { toast } from "sonner";
+import { AIKeyDialog } from "@/components/ai/AIKeyDialog";
+import { explainMove, loadAIConfig } from "@/lib/ai-coach";
 
 export function LiveBoardShowcase({ game }: { game?: ImportedGame | null }) {
-  const displayGame = game ?? SAMPLE_GAME;
-  const gameKey = game?.id ?? "sample-game";
+  const initialGame = game ?? SAMPLE_GAME;
+  const [analyzed, setAnalyzed] = useState<ImportedGame | null>(null);
+  const displayGame = analyzed ?? initialGame;
+  const gameKey = (analyzed ?? game)?.id ?? "sample-game";
   const moves = displayGame.moves;
   const [ply, setPly] = useState(0); // 0 = starting position
   const [playing, setPlaying] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [progress, setProgress] = useState<ClassificationProgress | null>(null);
+  const [aiOpen, setAiOpen] = useState(false);
+  const [aiText, setAiText] = useState<string | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
 
   useEffect(() => {
     setPly(0);
     setPlaying(false);
+    setAnalyzed(null);
+    setAiText(null);
   }, [gameKey]);
 
   // Build the position for the given ply by replaying SAN moves.
@@ -50,6 +68,15 @@ export function LiveBoardShowcase({ game }: { game?: ImportedGame | null }) {
   const evalCp = currentMove?.evalCp ?? 20;
   const orientation: "white" | "black" =
     (displayGame as ImportedGame).viewerSide === "b" ? "black" : "white";
+
+  // Live Stockfish for the current position — powers arrows + engine panel.
+  const { line: liveLine, status: liveStatus, error: liveError } = useStockfish(fen, 20);
+
+  const bestArrow = useMemo(() => {
+    const uci = liveLine?.bestMove ?? liveLine?.pv?.[0];
+    if (!uci || uci.length < 4) return null;
+    return { from: uci.slice(0, 2) as Square, to: uci.slice(2, 4) as Square };
+  }, [liveLine?.bestMove, liveLine?.pv]);
 
   useEffect(() => {
     if (!playing) return;
@@ -91,6 +118,60 @@ export function LiveBoardShowcase({ game }: { game?: ImportedGame | null }) {
     }
     return { white, black };
   }, [moves]);
+
+  async function runDeepAnalysis() {
+    if (analyzing) return;
+    setAnalyzing(true);
+    setProgress({ done: 0, total: moves.length, currentPly: 0 });
+    try {
+      const result = await analyzeGameWithStockfish(initialGame, 14, (p) => setProgress(p));
+      setAnalyzed(result);
+      toast.success("Deep Stockfish analysis complete.");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Analysis failed");
+    } finally {
+      setAnalyzing(false);
+      setProgress(null);
+    }
+  }
+
+  async function askAI() {
+    if (!currentMove) return;
+    const cfg = loadAIConfig();
+    if (!cfg) {
+      setAiOpen(true);
+      return;
+    }
+    setAiLoading(true);
+    setAiText(null);
+    try {
+      // Compute FEN before the move.
+      const chess = new Chess();
+      for (let i = 0; i < ply - 1; i++) chess.move(moves[i].san);
+      const fenBefore = chess.fen();
+      const anyMove = currentMove as typeof currentMove & { bestMoveSan?: string; cpLoss?: number };
+      const text = await explainMove(cfg, {
+        san: currentMove.san,
+        side: currentMove.side,
+        fenBefore,
+        fenAfter: fen,
+        annotation: currentMove.annotation,
+        evalCp: currentMove.evalCp,
+        bestMoveSan: anyMove.bestMoveSan ?? null,
+        cpLoss: anyMove.cpLoss,
+        gameHeader: {
+          white: displayGame.white,
+          black: displayGame.black,
+          opening: displayGame.opening,
+        },
+      });
+      setAiText(text);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "AI request failed");
+    } finally {
+      setAiLoading(false);
+    }
+  }
 
   return (
     <section id="board" className="relative py-12 sm:py-24">
