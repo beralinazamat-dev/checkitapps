@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SocialRouteImport } from './routes/social'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as OpeningsRouteImport } from './routes/openings'
 import { Route as AnalyzeRouteImport } from './routes/analyze'
 import { Route as AboutRouteImport } from './routes/about'
@@ -25,6 +26,11 @@ const SocialRoute = SocialRouteImport.update({
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OpeningsRoute = OpeningsRouteImport.update({
@@ -58,6 +64,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/analyze': typeof AnalyzeRoute
   '/openings': typeof OpeningsRoute
+  '/privacy': typeof PrivacyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/social': typeof SocialRoute
   '/api/chesscom-game/$id': typeof ApiChesscomGameIdRoute
@@ -67,6 +74,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/analyze': typeof AnalyzeRoute
   '/openings': typeof OpeningsRoute
+  '/privacy': typeof PrivacyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/social': typeof SocialRoute
   '/api/chesscom-game/$id': typeof ApiChesscomGameIdRoute
@@ -77,6 +85,7 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/analyze': typeof AnalyzeRoute
   '/openings': typeof OpeningsRoute
+  '/privacy': typeof PrivacyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/social': typeof SocialRoute
   '/api/chesscom-game/$id': typeof ApiChesscomGameIdRoute
@@ -88,6 +97,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/analyze'
     | '/openings'
+    | '/privacy'
     | '/sitemap.xml'
     | '/social'
     | '/api/chesscom-game/$id'
@@ -97,6 +107,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/analyze'
     | '/openings'
+    | '/privacy'
     | '/sitemap.xml'
     | '/social'
     | '/api/chesscom-game/$id'
@@ -106,6 +117,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/analyze'
     | '/openings'
+    | '/privacy'
     | '/sitemap.xml'
     | '/social'
     | '/api/chesscom-game/$id'
@@ -116,6 +128,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AnalyzeRoute: typeof AnalyzeRoute
   OpeningsRoute: typeof OpeningsRoute
+  PrivacyRoute: typeof PrivacyRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SocialRoute: typeof SocialRoute
   ApiChesscomGameIdRoute: typeof ApiChesscomGameIdRoute
@@ -135,6 +148,13 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/openings': {
@@ -180,6 +200,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AnalyzeRoute: AnalyzeRoute,
   OpeningsRoute: OpeningsRoute,
+  PrivacyRoute: PrivacyRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SocialRoute: SocialRoute,
   ApiChesscomGameIdRoute: ApiChesscomGameIdRoute,
