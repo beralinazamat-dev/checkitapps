@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Navbar } from "@/components/site/Navbar";
+import { Footer } from "@/components/site/Footer";
 import { Cpu, Sparkles, Globe, ShieldCheck } from "lucide-react";
 
 export const Route = createFileRoute("/about")({
@@ -19,7 +20,7 @@ export const Route = createFileRoute("/about")({
 
 const FEATURES = [
   { icon: Cpu, title: "Real Stockfish 16 NNUE", text: "The full engine runs directly in your browser via WebAssembly — no server round-trip, no throttling." },
-  { icon: Sparkles, title: "AI Coach (BYO key)", text: "Bring your own OpenAI or Gemini API key. Your key stays 100% local. Explanations are generated on demand." },
+  { icon: Sparkles, title: "AI Coach commentary", text: "Every move gets a plain-language explanation so you understand not just what changed, but why." },
   { icon: Globe, title: "Chess.com & Lichess", text: "Paste a link, a username, or raw PGN. Every game is imported and re-analyzed move by move." },
   { icon: ShieldCheck, title: "Private by design", text: "CheckItApp is a static site. No accounts, no tracking, no server storage. Your games never leave your browser." },
 ];
@@ -61,6 +62,7 @@ function AboutPage() {
           </Link>
         </div>
       </section>
+      <Footer />
     </main>
   );
 }

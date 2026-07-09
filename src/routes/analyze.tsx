@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Toaster } from "sonner";
 import { Navbar } from "@/components/site/Navbar";
+import { Footer } from "@/components/site/Footer";
 import { GameImporter } from "@/components/chess/GameImporter";
 import { LiveBoardShowcase } from "@/components/chess/LiveBoardShowcase";
 import type { ImportedGame } from "@/lib/game-fetcher";
@@ -30,6 +31,7 @@ function AnalyzePage() {
       <div className="pt-8" />
       <GameImporter onGameSelected={setGame} />
       <LiveBoardShowcase game={game} />
+      <Footer />
     </main>
   );
 }

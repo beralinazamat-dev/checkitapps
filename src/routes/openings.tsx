@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Navbar } from "@/components/site/Navbar";
+import { Footer } from "@/components/site/Footer";
 import { OpeningsExplorer } from "@/components/chess/OpeningsExplorer";
 
 export const Route = createFileRoute("/openings")({
@@ -23,6 +24,7 @@ function OpeningsPage() {
       <Navbar />
       <div className="pt-8" />
       <OpeningsExplorer />
+      <Footer />
     </main>
   );
 }

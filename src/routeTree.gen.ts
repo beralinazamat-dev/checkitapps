@@ -9,14 +9,28 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TermsRouteImport } from './routes/terms'
+import { Route as SupportRouteImport } from './routes/support'
 import { Route as SocialRouteImport } from './routes/social'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as OpeningsRouteImport } from './routes/openings'
+import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AnalyzeRouteImport } from './routes/analyze'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiChesscomGameIdRouteImport } from './routes/api/chesscom-game.$id'
 
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SupportRoute = SupportRouteImport.update({
+  id: '/support',
+  path: '/support',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SocialRoute = SocialRouteImport.update({
   id: '/social',
   path: '/social',
@@ -27,9 +41,19 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OpeningsRoute = OpeningsRouteImport.update({
   id: '/openings',
   path: '/openings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AnalyzeRoute = AnalyzeRouteImport.update({
@@ -57,18 +81,26 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/analyze': typeof AnalyzeRoute
+  '/contact': typeof ContactRoute
   '/openings': typeof OpeningsRoute
+  '/privacy': typeof PrivacyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/social': typeof SocialRoute
+  '/support': typeof SupportRoute
+  '/terms': typeof TermsRoute
   '/api/chesscom-game/$id': typeof ApiChesscomGameIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/analyze': typeof AnalyzeRoute
+  '/contact': typeof ContactRoute
   '/openings': typeof OpeningsRoute
+  '/privacy': typeof PrivacyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/social': typeof SocialRoute
+  '/support': typeof SupportRoute
+  '/terms': typeof TermsRoute
   '/api/chesscom-game/$id': typeof ApiChesscomGameIdRoute
 }
 export interface FileRoutesById {
@@ -76,9 +108,13 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/analyze': typeof AnalyzeRoute
+  '/contact': typeof ContactRoute
   '/openings': typeof OpeningsRoute
+  '/privacy': typeof PrivacyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/social': typeof SocialRoute
+  '/support': typeof SupportRoute
+  '/terms': typeof TermsRoute
   '/api/chesscom-game/$id': typeof ApiChesscomGameIdRoute
 }
 export interface FileRouteTypes {
@@ -87,27 +123,39 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/analyze'
+    | '/contact'
     | '/openings'
+    | '/privacy'
     | '/sitemap.xml'
     | '/social'
+    | '/support'
+    | '/terms'
     | '/api/chesscom-game/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/about'
     | '/analyze'
+    | '/contact'
     | '/openings'
+    | '/privacy'
     | '/sitemap.xml'
     | '/social'
+    | '/support'
+    | '/terms'
     | '/api/chesscom-game/$id'
   id:
     | '__root__'
     | '/'
     | '/about'
     | '/analyze'
+    | '/contact'
     | '/openings'
+    | '/privacy'
     | '/sitemap.xml'
     | '/social'
+    | '/support'
+    | '/terms'
     | '/api/chesscom-game/$id'
   fileRoutesById: FileRoutesById
 }
@@ -115,14 +163,32 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   AnalyzeRoute: typeof AnalyzeRoute
+  ContactRoute: typeof ContactRoute
   OpeningsRoute: typeof OpeningsRoute
+  PrivacyRoute: typeof PrivacyRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SocialRoute: typeof SocialRoute
+  SupportRoute: typeof SupportRoute
+  TermsRoute: typeof TermsRoute
   ApiChesscomGameIdRoute: typeof ApiChesscomGameIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/support': {
+      id: '/support'
+      path: '/support'
+      fullPath: '/support'
+      preLoaderRoute: typeof SupportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/social': {
       id: '/social'
       path: '/social'
@@ -137,11 +203,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/openings': {
       id: '/openings'
       path: '/openings'
       fullPath: '/openings'
       preLoaderRoute: typeof OpeningsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/analyze': {
@@ -179,9 +259,13 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   AnalyzeRoute: AnalyzeRoute,
+  ContactRoute: ContactRoute,
   OpeningsRoute: OpeningsRoute,
+  PrivacyRoute: PrivacyRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SocialRoute: SocialRoute,
+  SupportRoute: SupportRoute,
+  TermsRoute: TermsRoute,
   ApiChesscomGameIdRoute: ApiChesscomGameIdRoute,
 }
 export const routeTree = rootRouteImport

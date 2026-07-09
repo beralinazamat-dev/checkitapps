@@ -8,6 +8,7 @@ import { LiveBoardShowcase } from "@/components/chess/LiveBoardShowcase";
 import { OpeningsExplorer } from "@/components/chess/OpeningsExplorer";
 import { WorldFootprint } from "@/components/site/WorldFootprint";
 import { SocialSection } from "@/components/site/SocialSection";
+import { Footer } from "@/components/site/Footer";
 import type { ImportedGame } from "@/lib/game-fetcher";
 
 export const Route = createFileRoute("/")({
@@ -56,6 +57,7 @@ function Index() {
       <OpeningsExplorer />
       <SocialSection />
       <WorldFootprint />
+      <Footer />
     </main>
   );
 }
