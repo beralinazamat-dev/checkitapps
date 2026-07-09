@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Navbar } from "@/components/site/Navbar";
+import { Footer } from "@/components/site/Footer";
 import { SocialSection } from "@/components/site/SocialSection";
 
 export const Route = createFileRoute("/social")({
@@ -23,6 +24,7 @@ function SocialPage() {
       <Navbar />
       <div className="pt-6" />
       <SocialSection />
+      <Footer />
     </main>
   );
 }
