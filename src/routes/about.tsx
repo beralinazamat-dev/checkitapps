@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Navbar } from "@/components/site/Navbar";
+import { Footer } from "@/components/site/Footer";
 import { Cpu, Sparkles, Globe, ShieldCheck } from "lucide-react";
 
 export const Route = createFileRoute("/about")({
@@ -61,6 +62,7 @@ function AboutPage() {
           </Link>
         </div>
       </section>
+      <Footer />
     </main>
   );
 }
