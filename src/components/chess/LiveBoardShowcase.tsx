@@ -10,7 +10,6 @@ import {
   Pause,
   Sparkles,
   Cpu,
-  KeyRound,
   Loader2,
 } from "lucide-react";
 import { SAMPLE_GAME } from "@/lib/sample-game";
@@ -25,8 +24,6 @@ import { BestMoveArrow } from "./BestMoveArrow";
 import { useStockfish } from "@/hooks/use-stockfish";
 import { analyzeGameWithStockfish, type ClassificationProgress } from "@/lib/stockfish-classifier";
 import { toast } from "sonner";
-import { AIKeyDialog } from "@/components/ai/AIKeyDialog";
-import { explainMove, loadAIConfig } from "@/lib/ai-coach";
 
 export function LiveBoardShowcase({ game }: { game?: ImportedGame | null }) {
   const initialGame = game ?? SAMPLE_GAME;
@@ -38,15 +35,11 @@ export function LiveBoardShowcase({ game }: { game?: ImportedGame | null }) {
   const [playing, setPlaying] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [progress, setProgress] = useState<ClassificationProgress | null>(null);
-  const [aiOpen, setAiOpen] = useState(false);
-  const [aiText, setAiText] = useState<string | null>(null);
-  const [aiLoading, setAiLoading] = useState(false);
 
   useEffect(() => {
     setPly(0);
     setPlaying(false);
     setAnalyzed(null);
-    setAiText(null);
   }, [gameKey]);
 
   // Build the position for the given ply by replaying SAN moves.
@@ -137,44 +130,6 @@ export function LiveBoardShowcase({ game }: { game?: ImportedGame | null }) {
     } finally {
       setAnalyzing(false);
       setProgress(null);
-    }
-  }
-
-  async function askAI() {
-    if (!currentMove) return;
-    const cfg = loadAIConfig();
-    if (!cfg) {
-      setAiOpen(true);
-      return;
-    }
-    setAiLoading(true);
-    setAiText(null);
-    try {
-      // Compute FEN before the move.
-      const chess = new Chess();
-      for (let i = 0; i < ply - 1; i++) chess.move(moves[i].san);
-      const fenBefore = chess.fen();
-      const anyMove = currentMove as typeof currentMove & { bestMoveSan?: string; cpLoss?: number };
-      const text = await explainMove(cfg, {
-        san: currentMove.san,
-        side: currentMove.side,
-        fenBefore,
-        fenAfter: fen,
-        annotation: currentMove.annotation,
-        evalCp: currentMove.evalCp,
-        bestMoveSan: anyMove.bestMoveSan ?? null,
-        cpLoss: anyMove.cpLoss,
-        gameHeader: {
-          white: displayGame.white,
-          black: displayGame.black,
-          opening: displayGame.opening,
-        },
-      });
-      setAiText(text);
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "AI request failed");
-    } finally {
-      setAiLoading(false);
     }
   }
 
@@ -290,34 +245,7 @@ export function LiveBoardShowcase({ game }: { game?: ImportedGame | null }) {
                     ? "Re-run deep analysis"
                     : "Deep Stockfish analysis"}
               </button>
-              <button
-                onClick={askAI}
-                disabled={aiLoading || !currentMove}
-                className="inline-flex items-center gap-2 rounded-full border border-sky/30 bg-sky/10 px-3.5 py-1.5 text-xs font-medium text-sky transition hover:bg-sky/20 disabled:opacity-60"
-              >
-                {aiLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
-                Ask AI about this move
-              </button>
-              <button
-                onClick={() => setAiOpen(true)}
-                className="inline-flex items-center gap-1 rounded-full border border-glass-border px-3 py-1.5 text-xs text-muted-foreground transition hover:text-foreground"
-                title="AI settings"
-              >
-                <KeyRound className="h-3.5 w-3.5" />
-                AI key
-              </button>
             </div>
-
-            {aiText && (
-              <div className="glass rounded-2xl p-4">
-                <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-sky">
-                  <Sparkles className="h-3.5 w-3.5" /> AI explanation
-                </div>
-                <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-foreground/90">
-                  {aiText}
-                </p>
-              </div>
-            )}
 
             {/* AI Coach panel */}
             <div className="glass min-h-[148px] rounded-2xl p-4">
@@ -413,7 +341,6 @@ export function LiveBoardShowcase({ game }: { game?: ImportedGame | null }) {
           </div>
         </motion.div>
       </div>
-      <AIKeyDialog open={aiOpen} onClose={() => setAiOpen(false)} />
     </section>
   );
 }
